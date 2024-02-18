@@ -17,7 +17,7 @@ mkdir ./__build__/
 
 clear
 
-git clone https://github.com/gitlab-az1/math-console.git ./__build__/
+git clone https://github.com/gitlab-az1/not-synchronous.git ./__build__/
 
 cd ./__build__/
 
