@@ -1,4 +1,5 @@
 export * from './core';
+export * from './events';
 export * from './iterable';
 export * from './deferred';
 export * from './event-loop';
@@ -44,6 +45,15 @@ export namespace nsync { // eslint-disable-line @typescript-eslint/no-namespace
    * A class for managing asynchronous event loop processing.
    */
   export const EventLoop: typeof import('./event-loop').EventLoop = require('./event-loop').EventLoop;
+
+  /**
+   * Represents an event object.
+   * 
+   * @template T The type of the event data.
+   */
+  export const BaseEvent: typeof import('./events').Event = require('./events').Event;
+
+  export const EventEmitter: typeof import('./events').EventEmitter = require('./events').EventEmitter;
 
   /**
    * Represents a promise whose resolution can be controlled externally.

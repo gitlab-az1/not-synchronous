@@ -4,7 +4,7 @@ import { Exception } from './_internals/errors';
 import IDisposable from './_internals/disposable';
 import { Stack, Order } from './_internals/stack';
 import { isPlainObject } from './_internals/utils';
-import { EventEmitter, Event as BaseEvent, EventSubscribeOptions } from './_internals/events';
+import { EventEmitter, Event as BaseEvent, EventSubscribeOptions } from './events';
 
 
 export type EventLoopOptions = {

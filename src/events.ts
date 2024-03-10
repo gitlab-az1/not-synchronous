@@ -1,9 +1,9 @@
-import { uuid } from './uid';
-import { Hash } from './crypto';
-import { Exception } from './errors';
-import { assertString } from './utils';
-import { IDisposable } from './disposable';
-import type { Dict, Writable } from './types';
+import { uuid } from './_internals/uid';
+import { Hash } from './_internals/crypto';
+import { Exception } from './_internals/errors';
+import { assertString } from './_internals/utils';
+import { IDisposable } from './_internals/disposable';
+import type { Dict, Writable } from './_internals/types';
 
 
 const logger = console;
@@ -26,6 +26,11 @@ export type EventOptions = {
   stack?: Stacktrace;
 }
 
+/**
+ * Represents an event object.
+ * 
+ * @template T The type of the event data.
+ */
 export class Event<T> {
   public readonly target: T;
   public readonly timestamp: number;
@@ -35,7 +40,14 @@ export class Event<T> {
   private _isDefaultPrevented: boolean = false;
   private _isDelivered: boolean = false;
 
-  constructor(
+  /**
+   * Constructs an Event object.
+   * 
+   * @param type The type of the event.
+   * @param data The data associated with the event.
+   * @param options Additional options for the event.
+   */
+  public constructor(
     public readonly type: string,
     data: T,
     options?: EventOptions // eslint-disable-line comma-dangle
@@ -103,13 +115,26 @@ export type EventEmitterOptions = {
   onListenerError?: (error: Error) => void;
 }
 
+/**
+ * Represents an event emitter.
+ */
 export class EventEmitter<EventsMap extends Dict<Event<any>> = Dict<Event<any>>> {
   private _size: number = 0;
   private _disposed: boolean = false;
   private readonly _listeners: Map<string, ListenerSubscription[]> = new Map();
 
+  
   constructor(private readonly _options?: EventEmitterOptions) { }
 
+  /**
+   * Subscribes to an event.
+   * 
+   * @param event The type of event to subscribe to.
+   * @param listener The function to be called when the event is emitted.
+   * @param thisArgs The context object to be used as 'this' when calling the listener function.
+   * @param options Additional options for the subscription.
+   * @returns An object containing a method to unsubscribe from the event.
+   */
   public subscribe<K extends keyof EventsMap>(
     event: K | Omit<string, K>,
     listener: (e: EventsMap[K]) => any,
@@ -171,6 +196,13 @@ export class EventEmitter<EventsMap extends Dict<Event<any>> = Dict<Event<any>>>
     };
   }
 
+  /**
+   * Emits an event, invoking all subscribed listeners.
+   * 
+   * @param event The event to emit.
+   * @param args Arguments to pass to the event listeners.
+   * @returns An array of results returned by the event listeners.
+   */
   public emit<K extends keyof EventsMap>(event: K | Omit<string, K>, ...args: any[]): any[] | undefined {
     assertString(event);
 
@@ -223,6 +255,12 @@ export class EventEmitter<EventsMap extends Dict<Event<any>> = Dict<Event<any>>>
     return results;
   }
 
+  /**
+   * Fires an event with provided data.
+   * 
+   * @param event The event to fire.
+   * @param data The data to pass to the event listeners.
+   */
   public fire<K extends keyof EventsMap>(event: K | Omit<string, K>, data: EventsMap[K] | any): void {
     assertString(event);
 
@@ -263,6 +301,13 @@ export class EventEmitter<EventsMap extends Dict<Event<any>> = Dict<Event<any>>>
     }
   }
 
+  /**
+   * Gets the subscription for a specific event listener.
+   * 
+   * @param event The event to query.
+   * @param listener The event listener function.
+   * @returns The subscription object if found, otherwise null.
+   */
   public getSubscription<K extends keyof EventsMap>(event: K | Omit<string, K>, listener: (...args: any[]) => any): ListenerSubscription | null {
     assertString(event);
 
@@ -284,6 +329,12 @@ export class EventEmitter<EventsMap extends Dict<Event<any>> = Dict<Event<any>>>
     return null;
   }
 
+  /**
+   * Gets all listeners for a specific event.
+   * 
+   * @param event The event to query.
+   * @returns An array of listener subscriptions.
+   */
   public getListeners<K extends keyof EventsMap>(event: K | Omit<string, K>): ListenerSubscription[] {
     assertString(event);
 
@@ -294,6 +345,9 @@ export class EventEmitter<EventsMap extends Dict<Event<any>> = Dict<Event<any>>>
     return this._listeners.get(event) ?? [];
   }
 
+  /**
+   * Removes all listeners for all events.
+   */
   public removeListeners(): void {
     if(this._disposed) {
       throw new Exception('EventEmitter has been disposed');
@@ -303,6 +357,12 @@ export class EventEmitter<EventsMap extends Dict<Event<any>> = Dict<Event<any>>>
     this._size = 0;
   }
 
+  /**
+   * Removes a listener for a specific event.
+   * 
+   * @param event The event to remove the listener from.
+   * @param listener The listener function to remove.
+   */
   public removeListener<K extends keyof EventsMap>(
     event: K | Omit<string, K>,
     listener?: (...args: any[]) => any // eslint-disable-line comma-dangle
@@ -328,10 +388,18 @@ export class EventEmitter<EventsMap extends Dict<Event<any>> = Dict<Event<any>>>
     }
   }
 
+  /**
+   * Checks if there are any active listeners.
+   * 
+   * @returns True if there are active listeners, false otherwise.
+   */
   public hasListeners(): boolean {
     return this._size > 0;
   }
 
+  /**
+   * Disposes of the event emitter, removing all listeners.
+   */
   public dispose(): void {
     if(this._disposed) return;
 
@@ -339,5 +407,21 @@ export class EventEmitter<EventsMap extends Dict<Event<any>> = Dict<Event<any>>>
     this._size = 0;
 
     this._disposed = true;
+  }
+
+  public [Symbol.toStringTag](): string {
+    return '[object EventEmitter]';
+  }
+
+  public [Symbol.toPrimitive](): string {
+    return this[Symbol.toStringTag]();
+  }
+
+  public [Symbol.iterator](): IterableIterator<[string, ListenerSubscription[]]> {
+    return this._listeners.entries();
+  }
+
+  public [Symbol.dispose](): void {
+    this.dispose();
   }
 }

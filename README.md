@@ -22,6 +22,12 @@ Facilitates asynchronous job execution in subsequent iterations of the event loo
 - **immediate**: Schedules a function to be invoked immediately following the current event loop iteration.
 
 
+### Events
+
+- **EventEmitter**: A simple event emitter implementation.
+- **BaseEvent**: A base class for creating custom events.
+
+
 ### Iterable 
 
 - **forEachArray**: An asynchronous alternative to `Array.prototype.forEach`.
