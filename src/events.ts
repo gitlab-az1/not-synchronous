@@ -299,6 +299,8 @@ export class EventEmitter<EventsMap extends Dict<Event<any>> = Dict<Event<any>>>
         listeners.push(subscription);
       }
     }
+
+    this.removeListener(event);
   }
 
   /**
