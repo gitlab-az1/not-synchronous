@@ -1,6 +1,6 @@
 {
   "name": "not-synchronous",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "main": "index.js",
   "repository": "https://github.com/gitlab-az1/not-synchronous.git",
   "author": "gitlab-az1 <gitlab.az1@gmail.com>",
