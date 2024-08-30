@@ -268,11 +268,9 @@ export class EventEmitter<EventsMap extends Dict<Event<any>> = Dict<Event<any>>>
       throw new Exception('EventEmitter has been disposed');
     }
 
-    if(!this._listeners.has(event)) return;
+    const listeners = [...this._listeners.values()].flat()
 
-    const listeners = this._listeners.get(event) ?? [];
-
-    for(const subscription of listeners as Writable<ListenerSubscription>[]) {
+    for(const subscription of listeners) {
       if(subscription.isDisposed) continue;
 
       if(subscription.once &&
@@ -291,7 +289,7 @@ export class EventEmitter<EventsMap extends Dict<Event<any>> = Dict<Event<any>>>
         this._options?.onListenerError?.(err);
       }
 
-      subscription.calls++;
+      (<Writable<typeof subscription>>subscription).calls++;
       const index = listeners.findIndex(item => item.subscriptionId === subscription.subscriptionId);
 
       if(index > -1) {
