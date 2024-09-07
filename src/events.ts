@@ -24,6 +24,10 @@ class Stacktrace {
 export type EventOptions = {
   cancelable?: boolean;
   stack?: Stacktrace;
+  onCancel?: () => void;
+  onPropagate?: () => void;
+  onPropagationStopped?: () => void;
+  onDefaultPrevented?: () => void;
 }
 
 /**
@@ -39,6 +43,7 @@ export class Event<T> {
   private _isCancelled: boolean = false;
   private _isDefaultPrevented: boolean = false;
   private _isDelivered: boolean = false;
+  private readonly _callbacks: Dict<(() => void) | null | undefined> = {};
 
   /**
    * Constructs an Event object.
@@ -54,8 +59,15 @@ export class Event<T> {
   ) {
     this.target = data;
     this.timestamp = Date.now();
-    this.cancelable = options?.cancelable ?? false;
+    this.cancelable = options?.cancelable || false;
     this._stack = options?.stack;
+
+    this._callbacks = {
+      _cancel: options?.onCancel,
+      _propagate: options?.onPropagate,
+      _propagateEnd: options?.onDefaultPrevented,
+      _stopPropagation: options?.onPropagationStopped,
+    };
   }
 
   public get isDefaultPrevented(): boolean {
@@ -75,19 +87,22 @@ export class Event<T> {
   }
 
   public preventDefault(): void {
-    if(this.cancelable) {
-      this._isDefaultPrevented = true;
-    }
+    if(this._isDefaultPrevented) return;
+
+    this._callbacks._propagateEnd?.();
+    this._isDefaultPrevented = true;
   }
 
   public stopPropagation(): void {
-    throw new Error('Not implemented');
+    if(!this._isDelivered) return;
+    this._callbacks._stopPropagation?.();
+    this._isDelivered = true;
   }
 
   public cancel(): void {
-    if(this.cancelable) {
-      this._isCancelled = true;
-    }
+    if(!this.cancelable) return;
+    this._callbacks._cancel?.();
+    this._isCancelled = true;
   }
 }
 
@@ -268,7 +283,7 @@ export class EventEmitter<EventsMap extends Dict<Event<any>> = Dict<Event<any>>>
       throw new Exception('EventEmitter has been disposed');
     }
 
-    const listeners = [...this._listeners.values()].flat()
+    const listeners = [...this._listeners.values()].flat();
 
     for(const subscription of listeners) {
       if(subscription.isDisposed) continue;
